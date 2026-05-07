@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "yandex" {
-  service_account_key_file = "./tf_key.json"
+
   folder_id                = local.folder_id
   zone                     = "ru-central1-a"
 }
@@ -21,12 +21,8 @@ resource "yandex_vpc_subnet" "foo" {
   v4_cidr_blocks = ["10.5.0.0/24"]
 }
 
-resource "yandex_container_registry" "registry1" {
-  name = "registry1"
-}
-
 locals {
-  folder_id = "<INSERT YOUR FOLDER ID>"
+  folder_id = "b1gvtik77vkkkeso2ga7"
   service-accounts = toset([
     "catgpt-sa",
   ])

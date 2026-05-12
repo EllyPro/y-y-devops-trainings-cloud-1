@@ -21,10 +21,10 @@ jobs:
 
     - name: Login to YandexCloudRegistry
       run: |
-        echo "${{ secrets.YC_SERVICE_ACCOUNT_KEY }}" > key.json
-        cat key.json | docker login \
+        printf '%s' '${{ secrets.YC_SERVICE_ACCOUNT_KEY }}' > key.json
+        docker login \
           --username json_key \
-          --password-stdin cr.yandex
+          --password-stdin cr.yandex < key.json
     - name: Build Image
       run: |
         docker build -t catgpt .

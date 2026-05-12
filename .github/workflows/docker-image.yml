@@ -40,7 +40,7 @@ jobs:
         host: ${{ secrets.VM_IP }}
         username: ubuntu
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        scripts: |
+        script: |
           docker stop catgpt
           docker rm catgpt
           docker pull cr.yandex/${{ secrets.YC_REGISTRY_ID }}/catgpt:latest

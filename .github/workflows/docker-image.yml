@@ -34,4 +34,15 @@ jobs:
     - name: Push Image
       run: |
         docker push cr.yandex/${{ secrets.YC_REGISTRY_ID }}/catgpt:latest
+    - name: Deploy to VM
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VM_IP }}
+        username: ubuntu
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        scripts: |
+          docker stop catgpt
+          docker rm catgpt
+          docker pull cr.yandex/${{ secrets.YC_REGISTRY_ID }}/catgpt:latest
+          docker run -d --name catgpt --network host cr.yandex/${{ secrets.YC_REGISTRY_ID }}/catgpt:latest
       

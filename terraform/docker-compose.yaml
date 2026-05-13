@@ -5,3 +5,13 @@ services:
     image: "cr.yandex/crpbnp64tdhu2e3p7afm/catgpt:latest"
     restart: always
     network_mode: "host"
+
+  unified-agent:
+    container_name: unified-agent
+    image: "cr.yandex/yc/unified-agent"
+    restart: always
+    network_mode: "host"
+
+    volumes:
+      - /etc/unified-agent:/etc/unified-agent
+

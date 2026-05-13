@@ -28,6 +28,7 @@ locals {
   ])
   catgpt-sa-roles = toset([
     "container-registry.images.puller",
+    "container-registry.images.pusher",
     "monitoring.editor",
   ])
 }
@@ -45,7 +46,9 @@ resource "yandex_resourcemanager_folder_iam_member" "catgpt-roles" {
 data "yandex_compute_image" "coi" {
   family = "container-optimized-image"
 }
-resource "yandex_compute_instance" "catgpt-1" {
+resource "yandex_compute_instance" "catgpt" {
+    name               = "catgpt-${count.index}"
+    count              = 2
     platform_id        = "standard-v2"
     service_account_id = yandex_iam_service_account.service-accounts["catgpt-sa"].id
     resources {
@@ -69,8 +72,55 @@ resource "yandex_compute_instance" "catgpt-1" {
     }
     metadata = {
       docker-compose = file("${path.module}/docker-compose.yaml")
+        user-data = <<-EOT
+        #cloud-config
+        write_files:
+          - path: /etc/unified-agent/config.yml
+            permissions: '0644'
+            content: |
+        ${indent(6, file("${path.module}/unified-agent.yml"))}
+        EOT
       ssh-keys  = "ubuntu:${file("~/.ssh/devops_training.pub")}"
     }
+}
+
+resource "yandex_lb_target_group" "catgpt-tg" {
+  name = "catgpt-tg"
+  description = "Target group for CatGPT instances"
+  dynamic "target" {
+    for_each = yandex_compute_instance.catgpt
+    content {
+      subnet_id = yandex_vpc_subnet.foo.id
+      address   = target.value.network_interface[0].ip_address
+    }
+    
+  }
+}
+
+resource "yandex_lb_network_load_balancer" "catgpt-lb" {
+  name = "catgpt-lb"
+
+  listener {
+    name = "http"
+
+    port = 8080
+    external_address_spec {
+      ip_version = "ipv4"
+    }
+  }
+
+  attached_target_group {
+    target_group_id = yandex_lb_target_group.catgpt-tg.id
+
+    healthcheck {
+      name = "http-health"
+
+      http_options {
+        port = 8080
+        path = "/ping"
+      }
+    }
+  }
 }
 
 

@@ -1,0 +1,18 @@
+status:
+  port: 16241
+
+channels:
+  - name: yc_metrics_output
+    output:
+      plugin: yc_metrics
+      config:
+        folder_id: "b1gvtik77vkkkeso2ga7"
+
+routes:
+  - input:
+      plugin: prometheus
+      config:
+        url: http://localhost:9090/metrics
+        namespace: catgpt
+    channel:
+      channel_ref: yc_metrics_output
